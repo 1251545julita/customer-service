@@ -15,7 +15,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  *     (@Component, @Service, @Repository, @RestController) para crearlas.
  *
  * Por eso toda clase que Spring deba gestionar tiene que estar dentro de
- * ar.edu.utn.diplomatura.customers o en un subpaquete.
+ * ar.edu.utn.diplomatura.customerservice o en un subpaquete.
  */
 @SpringBootApplication
 @EnableFeignClients

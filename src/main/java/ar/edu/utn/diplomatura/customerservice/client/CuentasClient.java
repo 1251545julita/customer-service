@@ -1,6 +1,5 @@
 package ar.edu.utn.diplomatura.customerservice.client;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import ar.edu.utn.diplomatura.customerservice.dto.CuentaDTO;
@@ -59,35 +58,4 @@ public interface CuentasClient {
     CuentaResponse actualizar(@PathVariable("id") Long id,
                               @PathVariable("cuentaId") Long cuentaId,
                               @RequestBody CuentaUpdateRequest datosNuevos);
-
-//    // GET http://localhost:8082/cuentas
-//    @GetMapping("/cuentas")
-//    List<CuentaDTO> listar(
-//            @RequestParam(value = "clienteId", required = false) Long clienteId,
-//            @RequestParam(value = "numeroCuenta", required = false) String numeroCuenta
-//    );
-//
-////    // POST http://localhost:8082/cuentas/1/acreditaciones?importe=15000
-////    @PostMapping("/cuentas/{id}/acreditaciones")
-////    CuentaDTO acreditar(@PathVariable Long id, @RequestParam("importe") double importe);
-//
-//    // GET http://localhost:8082/cuentas?numeroCuenta=000000000042
-//    @GetMapping("/cuentas")
-//    List<CuentaDTO> buscarPorNumeroCuenta(@RequestParam("numeroCuenta") String numeroCuenta);
-//
-//    // GET http://localhost:8082/cuentas/1
-//    @GetMapping("/cuentas/{id}")
-//    CuentaDTO obtener(@PathVariable Long id);
-//
-//    // GET /cuentas/{id}/saldo
-//    @GetMapping("/cuentas/{id}/saldo")
-//    BigDecimal consultarSaldo(@PathVariable Long id);
-//
-//    // POST http://localhost:8082/cuentas/1/acreditaciones?importe=15000
-//    @PostMapping("/cuentas/{id}/acreditaciones")
-//    CuentaDTO acreditar( @PathVariable Long id, @RequestBody OperacionCuentaRequest request);
-//
-//    // POST /cuentas/{id}/retiros
-//    @PostMapping("/cuentas/{id}/retiros")
-//    CuentaDTO retirar( @PathVariable Long id, @RequestBody OperacionCuentaRequest request);
 }

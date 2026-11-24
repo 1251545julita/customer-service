@@ -1,7 +1,6 @@
 package ar.edu.utn.diplomatura.customerservice.entity;
 
 import ar.edu.utn.diplomatura.customerservice.Constants;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
@@ -9,9 +8,6 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * La Clase principal y Abstracta llamada Cliente, que engloba a todos los tipos de cliente.
@@ -39,10 +35,6 @@ public abstract class Cliente {
     private LocalDate fechaDeAlta;
     private Boolean activo;
     private String sucursal;
-
-//    @JsonIgnore
-//    @OneToMany(mappedBy = "cliente")
-//    private List<Cuenta> cuentas = new ArrayList<>();
 
     // Constructor
     protected Cliente(String nombre, String tipoDocumento, String numeroDocumento, String domicilio, String telefono, String correoElectronico, LocalDate fechaDeAlta, Boolean activo, String sucursal) {
@@ -88,7 +80,6 @@ public abstract class Cliente {
     public LocalDate getFechaDeAlta() { return this.fechaDeAlta; }
     public Boolean getActivo() { return activo; }
     public String getSucursal() { return sucursal; }
-    //public List<Cuenta> getCuentas() { return cuentas; }
 
     // Setters
     public void setNombre(String nombre) { this.nombre = nombre; }
@@ -100,7 +91,6 @@ public abstract class Cliente {
     public void setFechaDeAlta(LocalDate fechaDeAlta) { this.fechaDeAlta = fechaDeAlta; }
     public void setActivo(Boolean activo) { this.activo = activo; }
     public void setSucursal(String sucursal) { this.sucursal = sucursal; }
-    //public void setCuentas(List<Cuenta> cuentas) { this.cuentas = cuentas; }
 
     @Transient
     private DateTimeFormatter formatoFechaNormalizada = DateTimeFormatter.ofPattern(Constants.DATE_FORMAT);
@@ -116,7 +106,7 @@ public abstract class Cliente {
                "\n  - Correo Electrónico: " + this.correoElectronico +
                "\n  - Fecha de Alta: " + this.fechaDeAlta.format(formatoFechaNormalizada) +
                "\n  - Estado: " + (this.activo ? "ACTIVO" : "INACTIVO") +
-               "\n  - Sucursal: " + this.sucursal; //TODO: Agregar cuentas
+               "\n  - Sucursal: " + this.sucursal;
     }
 
     public boolean esClienteAntiguo() {

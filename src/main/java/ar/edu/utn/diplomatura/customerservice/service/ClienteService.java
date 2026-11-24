@@ -94,22 +94,9 @@ public class ClienteService {
         return clienteRepository.save(unCliente);
     }
 
-//    public Cliente crear(Cliente unCliente) {
-//        unCliente.validarDocumento();                       // polimórfico: DNI, CUIT, etc.
-//        if (clienteRepository.existsByCorreoElectronico(unCliente.getCorreoElectronico())) {
-//            throw new EmailDuplicadoException(unCliente.getCorreoElectronico());
-//        }
-//        unCliente.prepararAlta();
-//        return clienteRepository.save(unCliente);
-//    }
-
 
     /** Actualiza nombre, apellido, email y cuentas asociadas. Devuelve null si el id no existe. */
     public Cliente actualizar(Long id, Cliente datosNuevos) {
-//        Usuario clienteExistente = buscarPorId(id).orElse(null);
-//        if (clienteExistente == null) {
-//            return null;
-//        }
         Cliente clienteExistente = obtenerOFallar(id);
         if (!Hibernate.getClass(clienteExistente).equals(datosNuevos.getClass())) {
             throw new TipoClienteNoModificableException();
@@ -145,7 +132,6 @@ public class ClienteService {
             unaPersonaJuridica.setFacturacionAnual(nuevos.getFacturacionAnual());
             unaPersonaJuridica.setCuit(nuevos.getCuit());
         }
-//        clienteExistente.setCuentas(datosNuevos.getCuentas());
 
         return clienteRepository.save(clienteExistente);
     }
@@ -225,5 +211,4 @@ public class ClienteService {
                 datosNuevos
         );
     }
-
 }
