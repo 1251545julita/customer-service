@@ -19,7 +19,7 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>customer-service - Microservicio A con base de datos.</name>
+    <name>customer-service - Microservicio B con base de datos.</name>
     <description>
         Microservicio de clientes del banco (Spring Boot, Java 21):
         alta, baja, consulta y modificación de clientes personas físicas y jurídicas,
@@ -90,6 +90,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <version>4.1.0</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
         <dependency>

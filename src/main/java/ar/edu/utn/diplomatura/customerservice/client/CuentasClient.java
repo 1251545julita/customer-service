@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * Las anotaciones son las mismas que en un controller, pero leidas al reves:
  * en un controller dicen "atiendo este pedido"; aca dicen "mando este pedido".
  */
-@FeignClient(name = "servicio-productos", url = "http://localhost:8082")
+@FeignClient(name = "product-service")
 public interface CuentasClient {
 
     /** GET /cuentas
