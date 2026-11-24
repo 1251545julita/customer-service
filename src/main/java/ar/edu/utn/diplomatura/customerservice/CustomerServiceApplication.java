@@ -26,7 +26,7 @@ public class CustomerServiceApplication {
 
         System.out.println();
         System.out.println("===========================================================");
-        System.out.println("  Microservicio - API REST Customers");
+        System.out.println("  Microservicio B - API REST Customers");
         System.out.println("  App:         http://localhost:8081/clientes");
         System.out.println("               JDBC URL: jdbc:mysql://localhost:3306/customer-service   user: root");
         System.out.println("===========================================================");
