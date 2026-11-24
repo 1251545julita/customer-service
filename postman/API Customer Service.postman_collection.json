@@ -1,0 +1,1635 @@
+{
+  "info": {
+    "_postman_id": "b1412cb5-7d78-4200-bb61-defa48133a84",
+    "name": "API Customer Service",
+    "description": "# API Banco - app-cliente\n\nColeccion para probar el microservicio **app-cliente** (`/clientes`), que gestiona clientes y delega la gestion de cuentas bancarias en **app-cuentas** mediante un cliente Feign (`CuentasClient`).\n\n## Arquitectura\n\n```\nPostman --> app-cliente (/clientes) --Feign--> app-cuentas (/cuentas)\n```\n\n## Variables de coleccion\n\n| Variable | Valor por defecto | Uso |\n|---|---|---|\n| `baseUrl` | `http://localhost:8081` | URL de app-cliente (ajustar al puerto real) |\n| `cuentasUrl` | `http://localhost:8082` | URL de app-cuentas |\n| `clienteId` | `1` | Se actualiza sola al ejecutar *Registrar un cliente* |\n| `cuentaId` | `1` | Se actualiza sola al ejecutar *Crear una cuenta* |\n| `numeroDocumento` | `30123456` | Filtro de busqueda de clientes |\n| `numeroCuenta` | `0001` | Filtro de busqueda de cuentas |\n\n## Orden sugerido de ejecucion\n\n1. Registrar un cliente (04)\n2. Crear una cuenta para el cliente (11)\n3. Listar / obtener / actualizar cuentas (08, 09, 10, 12)\n4. Actualizar y eliminar el cliente (05, 06, 07)\n\n## Indice de requests\n\n| # | Metodo | Ruta | Descripcion |\n|---|---|---|---|\n| 01 | `GET` | `/clientes` | Listar todos los clientes |\n| 02 | `GET` | `/clientes?numeroDocumento={{numeroDocumento}}` | Buscar clientes por numeroDocumento |\n| 03 | `GET` | `/clientes/{{clienteId}}` | Obtener cliente por id |\n| 04 | `POST` | `/clientes` | Registrar un cliente |\n| 05 | `PUT` | `/clientes/{{clienteId}}` | Actualizar un cliente |\n| 06 | `DELETE` | `/clientes/{{clienteId}}?modo=logico` | Eliminar cliente (baja logica) |\n| 07 | `DELETE` | `/clientes/{{clienteId}}?modo=fisico` | Eliminar cliente (baja fisica) |\n| 08 | `GET` | `/clientes/{{clienteId}}/cuentas` | Listar cuentas de un cliente |\n| 09 | `GET` | `/clientes/{{clienteId}}/cuentas?numeroCuenta={{numeroCuenta}}` | Buscar cuentas de un cliente por numeroCuenta |\n| 10 | `GET` | `/clientes/{{clienteId}}/cuentas/{{cuentaId}}` | Obtener una cuenta de un cliente |\n| 11 | `POST` | `/clientes/cuentas` | Crear una cuenta para un cliente |\n| 12 | `PUT` | `/clientes/{{clienteId}}/cuentas/{{cuentaId}}` | Actualizar una cuenta de un cliente |\n| 13 | `GET` | `[app-cuentas]/cuentas` | [Feign] Listar todas las cuentas |\n| 14 | `GET` | `[app-cuentas]/cuentas/clientes/{{clienteId}}` | [Feign] Listar cuentas de un cliente |\n| 15 | `GET` | `[app-cuentas]/cuentas/clientes/{{clienteId}}/{{cuentaId}}` | [Feign] Obtener cuenta de un cliente |\n| 16 | `POST` | `[app-cuentas]/cuentas` | [Feign] Crear cuenta |\n| 17 | `PUT` | `[app-cuentas]/cuentas/clientes/{{clienteId}}/{{cuentaId}}` | [Feign] Actualizar cuenta |\n\n## Codigos de respuesta\n\n| Codigo | Significado |\n|---|---|\n| 200 | OK |\n| 201 | Recurso creado |\n| 204 | Sin contenido (baja de cliente) |\n| 400 | Datos invalidos / modo de baja invalido / campos que no corresponden al tipo de cuenta |\n| 404 | Cliente o cuenta no encontrados |\n| 409 | Email ya registrado |\n\n## Notas\n\n- Las rutas de cuentas de app-cliente siguen el formato `/clientes/{clienteId}/cuentas/{cuentaId}` (requests 08 a 12). El controller debe tener esos mappings.\n- Los nombres de campos de los bodies (`Cliente`, `CuentaRequest`, `CuentaUpdateRequest`) y los valores de `tipoCuenta` son un supuesto: ajustarlos a las clases reales.\n- Cada request incluye tests basicos (status esperado y tiempo de respuesta) y ejemplos de respuesta.\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "4361231"
+  },
+  "item": [
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "1. GET /clientes -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "description": "Devuelve la lista completa de clientes (puede venir vacia).\n\n**Controller:** `ClienteController#listar`\n\n**Respuestas**\n- `200` Lista de clientes (puede venir vacia)."
+          },
+          "response": [
+            {
+              "name": "200 - Lista de clientes",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"nombre\": \"Juan\",\n        \"domicilio\": \"Calle 123, CABA\",\n        \"telefono\": \"11-5555-4444\",\n        \"correoElectronico\": \"juan.perez@email.com\",\n        \"fechaDeAlta\": \"2026-11-21\",\n        \"activo\": true,\n        \"sucursal\": \"Sucursal 045 - Belgrano\",\n        \"apellido\": \"Perez\",\n        \"fechaDeNacimiento\": \"1990-06-15\",\n        \"profesion\": \"Ingeniero en Sistemas\",\n        \"ingresosDeclarados\": 750000.50,\n        \"estadoCivil\": \"Soltero\",\n        \"nacionalidad\": \"Argentina\",\n        \"situacionLaboral\": \"Relación de Dependencia\",\n        \"dni\": \"30123456\",\n        \"id\": 1,\n        \"numeroDocumento\": \"30123456\",\n        \"tipoDocumento\": \"dni\"\n    }\n]"
+            },
+            {
+              "name": "200 - Lista vacia",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes"
+                  ]
+                },
+                "description": "Devuelve la lista completa de clientes (puede venir vacia).\n\n**Controller:** `ClienteController#listar`\n\n**Respuestas**\n- `200` Lista de clientes (puede venir vacia)."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[]"
+            }
+          ]
+        },
+        {
+          "name": "2. GET /clientes?numeroDocumento=30123456 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes?numeroDocumento=30123456",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ],
+              "query": [
+                {
+                  "key": "numeroDocumento",
+                  "value": "30123456",
+                  "description": "Parte del numeroDocumento a buscar"
+                }
+              ]
+            },
+            "description": "Filtra por **coincidencia parcial**, sin distinguir mayusculas.\n\n**Query params**\n- `numeroDocumento` (opcional): parte del documento a buscar.\n\n**Respuestas**\n- `200` Lista filtrada (puede venir vacia)."
+          },
+          "response": [
+            {
+              "name": "200 - Con coincidencias",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes?numeroDocumento={{numeroDocumento}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes"
+                  ],
+                  "query": [
+                    {
+                      "key": "numeroDocumento",
+                      "value": "{{numeroDocumento}}",
+                      "description": "Parte del numeroDocumento a buscar"
+                    }
+                  ]
+                },
+                "description": "Filtra por **coincidencia parcial**, sin distinguir mayusculas.\n\n**Query params**\n- `numeroDocumento` (opcional): parte del documento a buscar.\n\n**Respuestas**\n- `200` Lista filtrada (puede venir vacia)."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"id\": 1,\n    \"nombre\": \"Juan\",\n    \"apellido\": \"Gomez\",\n    \"email\": \"juan.gomez@mail.com\",\n    \"numeroDocumento\": \"30123456\",\n    \"activo\": true\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "3. GET /clientes/1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "1"
+              ]
+            },
+            "description": "Devuelve un cliente por su id.\n\n**Path variables**\n- `id`: identificador del cliente (Long).\n\n**Respuestas**\n- `200` Cliente encontrado.\n- `404` Cliente no encontrado."
+          },
+          "response": [
+            {
+              "name": "200 - Cliente encontrado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"nombre\": \"Juan\",\n    \"domicilio\": \"Calle 123, CABA\",\n    \"telefono\": \"11-5555-4444\",\n    \"correoElectronico\": \"juan.perez@email.com\",\n    \"fechaDeAlta\": \"2026-11-21\",\n    \"activo\": true,\n    \"sucursal\": \"Sucursal 045 - Belgrano\",\n    \"apellido\": \"Perez\",\n    \"fechaDeNacimiento\": \"1990-06-15\",\n    \"profesion\": \"Ingeniero en Sistemas\",\n    \"ingresosDeclarados\": 750000.50,\n    \"estadoCivil\": \"Soltero\",\n    \"nacionalidad\": \"Argentina\",\n    \"situacionLaboral\": \"Relación de Dependencia\",\n    \"dni\": \"30123456\",\n    \"id\": 1,\n    \"numeroDocumento\": \"30123456\",\n    \"tipoDocumento\": \"dni\"\n}"
+            },
+            {
+              "name": "404 - Cliente no encontrado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ]
+                },
+                "description": "Devuelve un cliente por su id.\n\n**Path variables**\n- `id`: identificador del cliente (Long).\n\n**Respuestas**\n- `200` Cliente encontrado.\n- `404` Cliente no encontrado."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Cliente no encontrado con id 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "4. POST /clientes -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 201\", function () { pm.expect(pm.response.code).to.eql(201); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });\nif (pm.response.code === 201) { pm.collectionVariables.set(\"clienteId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Irene\",\n  \"tipoDocumento\": \"dni\",\n  \"numeroDocumento\": \"41.123.400\",\n  \"domicilio\": \"Av. Corrientes 987, CABA\",\n  \"telefono\": \"11-8589-5555\",\n  \"correoElectronico\": \"irene@mail.com\",\n  \"activo\": true,\n  \"sucursal\": \"Sucursal 110 - Centro Corporativo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "description": "Crea un cliente nuevo.\n\n**Body (JSON):** objeto `Cliente`.\n\n**Respuestas**\n- `201` Cliente creado.\n- `400` Datos invalidos (por ejemplo, DNI invalido).\n- `409` El email ya esta registrado.\n\n> Los nombres de campos del body son un supuesto: ajustalos a tu entidad `Cliente`.\n\nEl test de esta request guarda el `id` devuelto en la variable de coleccion `clienteId`."
+          },
+          "response": [
+            {
+              "name": "201 - Cliente creado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Gomez\",\n  \"email\": \"juan.gomez@mail.com\",\n  \"numeroDocumento\": \"30123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"nombre\": \"Irene\",\n    \"domicilio\": \"Av. Corrientes 987, CABA\",\n    \"telefono\": \"11-8589-5555\",\n    \"correoElectronico\": \"irene1@gmai.com\",\n    \"fechaDeAlta\": \"2026-11-23\",\n    \"activo\": true,\n    \"sucursal\": \"Sucursal 110 - Centro Corporativo\",\n    \"apellido\": null,\n    \"fechaDeNacimiento\": null,\n    \"profesion\": null,\n    \"ingresosDeclarados\": null,\n    \"estadoCivil\": null,\n    \"nacionalidad\": null,\n    \"situacionLaboral\": null,\n    \"dni\": null,\n    \"id\": 6,\n    \"numeroDocumento\": \"30123456\",\n    \"tipoDocumento\": \"dni\"\n}"
+            },
+            {
+              "name": "400 - DNI invalido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Gomez\",\n  \"email\": \"juan.gomez@mail.com\",\n  \"numeroDocumento\": \"30123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes"
+                  ]
+                },
+                "description": "Crea un cliente nuevo.\n\n**Body (JSON):** objeto `Cliente`.\n\n**Respuestas**\n- `201` Cliente creado.\n- `400` Datos invalidos (por ejemplo, DNI invalido).\n- `409` El email ya esta registrado.\n\n> Los nombres de campos del body son un supuesto: ajustalos a tu entidad `Cliente`.\n\nEl test de esta request guarda el `id` devuelto en la variable de coleccion `clienteId`."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"DNI invalido\"\n}"
+            },
+            {
+              "name": "409 - Email duplicado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Gomez\",\n  \"email\": \"juan.gomez@mail.com\",\n  \"numeroDocumento\": \"30123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes"
+                  ]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"Ya existe un usuario registrado con el email xxxxx@xxxx.com\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "5. PUT /clientes/5 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombre\": \"Irene\",\n    \"domicilio\": \"Av. Corrientes 987, CABA\",\n    \"telefono\": \"11-8589-5555\",\n    \"correoElectronico\": \"irene@gmail.com\",\n    \"fechaDeAlta\": \"2026-11-23\",\n    \"activo\": true,\n    \"sucursal\": \"Sucursal 110 - Centro Corporativo\",\n    \"apellido\": \"Gonzalez\",\n    \"fechaDeNacimiento\": \"2005-05-10\",\n    \"profesion\": \"Abogada\",\n    \"ingresosDeclarados\": 875000.00,\n    \"estadoCivil\": \"Soltera\",\n    \"nacionalidad\": \"Argentina\",\n    \"situacionLaboral\": \"Monotributista\",\n    \"dni\": \"41123400\",\n    \"id\": 5,\n    \"numeroDocumento\": \"41123400\",\n    \"tipoDocumento\": \"dni\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes/5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "5"
+              ]
+            },
+            "description": "Actualiza nombre, apellido, email y cuentas asociadas de un cliente existente.\n\n**Path variables**\n- `id`: identificador del cliente.\n\n**Body (JSON):** objeto `Cliente` con los datos nuevos.\n\n**Respuestas**\n- `200` Cliente actualizado.\n- `404` Cliente no encontrado."
+          },
+          "response": [
+            {
+              "name": "200 - Cliente actualizado",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Juan Pablo\",\n  \"apellido\": \"Gomez\",\n  \"email\": \"jp.gomez@mail.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/7",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "7"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": 1,\n  \"nombre\": \"Juan Pablo\",\n  \"apellido\": \"Gomez\",\n  \"email\": \"jp.gomez@mail.com\",\n  \"numeroDocumento\": \"30123456\",\n  \"activo\": true\n}"
+            },
+            {
+              "name": "404 - Cliente no encontrado",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Juan Pablo\",\n  \"apellido\": \"Gomez\",\n  \"email\": \"jp.gomez@mail.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ]
+                },
+                "description": "Actualiza nombre, apellido, email y cuentas asociadas de un cliente existente.\n\n**Path variables**\n- `id`: identificador del cliente.\n\n**Body (JSON):** objeto `Cliente` con los datos nuevos.\n\n**Respuestas**\n- `200` Cliente actualizado.\n- `404` Cliente no encontrado."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Cliente no encontrado con id 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "6. DELETE /clientes/6?modo=logico -> 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 204\", function () { pm.expect(pm.response.code).to.eql(204); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/6?modo=logico",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "6"
+              ],
+              "query": [
+                {
+                  "key": "modo",
+                  "value": "logico",
+                  "description": "logico | fisico"
+                }
+              ]
+            },
+            "description": "Deshabilita el cliente (baja **logica**). `modo=logico` es el valor por defecto.\n\n**Path variables**\n- `id`: identificador del cliente.\n\n**Query params**\n- `modo`: `logico` (default) o `fisico`.\n\n**Respuestas**\n- `204` Cliente deshabilitado.\n- `404` Cliente no encontrado o ya se borro.\n- `400` El modo debe ser `logico` o `fisico`."
+          },
+          "response": [
+            {
+              "name": "204 - Deshabilitado",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}?modo=logico",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "modo",
+                      "value": "logico",
+                      "description": "logico | fisico"
+                    }
+                  ]
+                },
+                "description": "Deshabilita el cliente (baja **logica**). `modo=logico` es el valor por defecto.\n\n**Path variables**\n- `id`: identificador del cliente.\n\n**Query params**\n- `modo`: `logico` (default) o `fisico`.\n\n**Respuestas**\n- `204` Cliente deshabilitado.\n- `404` Cliente no encontrado o ya se borro.\n- `400` El modo debe ser `logico` o `fisico`."
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "404 - No encontrado",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}?modo=logico",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "modo",
+                      "value": "logico",
+                      "description": "logico | fisico"
+                    }
+                  ]
+                },
+                "description": "Deshabilita el cliente (baja **logica**). `modo=logico` es el valor por defecto.\n\n**Path variables**\n- `id`: identificador del cliente.\n\n**Query params**\n- `modo`: `logico` (default) o `fisico`.\n\n**Respuestas**\n- `204` Cliente deshabilitado.\n- `404` Cliente no encontrado o ya se borro.\n- `400` El modo debe ser `logico` o `fisico`."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Cliente no encontrado con id 999\"\n}"
+            },
+            {
+              "name": "400 - Modo invalido",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}?modo=logico",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "modo",
+                      "value": "logico",
+                      "description": "logico | fisico"
+                    }
+                  ]
+                },
+                "description": "Deshabilita el cliente (baja **logica**). `modo=logico` es el valor por defecto.\n\n**Path variables**\n- `id`: identificador del cliente.\n\n**Query params**\n- `modo`: `logico` (default) o `fisico`.\n\n**Respuestas**\n- `204` Cliente deshabilitado.\n- `404` Cliente no encontrado o ya se borro.\n- `400` El modo debe ser `logico` o `fisico`."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"El modo debe ser 'logico' o 'fisico'\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "7. DELETE /clientes/6?modo=fisico -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 204\", function () { pm.expect(pm.response.code).to.eql(204); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/6?modo=fisico",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "6"
+              ],
+              "query": [
+                {
+                  "key": "modo",
+                  "value": "fisico",
+                  "description": "logico | fisico"
+                }
+              ]
+            },
+            "description": "Borra **fisicamente** el cliente de la base de datos. Operacion irreversible.\n\n**Query params**\n- `modo=fisico`\n\n**Respuestas**\n- `204` Cliente eliminado.\n- `404` Cliente no encontrado.\n- `400` Modo invalido."
+          },
+          "response": [
+            {
+              "name": "204 - Eliminado",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}?modo=fisico",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "modo",
+                      "value": "fisico",
+                      "description": "logico | fisico"
+                    }
+                  ]
+                },
+                "description": "Borra **fisicamente** el cliente de la base de datos. Operacion irreversible.\n\n**Query params**\n- `modo=fisico`\n\n**Respuestas**\n- `204` Cliente eliminado.\n- `404` Cliente no encontrado.\n- `400` Modo invalido."
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "404 - No encontrado",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}?modo=fisico",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "modo",
+                      "value": "fisico",
+                      "description": "logico | fisico"
+                    }
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "text",
+              "header": null,
+              "cookie": [],
+              "body": "{\r\n    \"error\": \"No exite un client con el id 6\"\r\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Alta, baja, consulta y modificacion de clientes del banco. Requests 01 a 07."
+    },
+    {
+      "name": "Cuentas de un cliente (via customer-service)",
+      "item": [
+        {
+          "name": "8. GET /clientes/1/cuentas -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/1/cuentas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "1",
+                "cuentas"
+              ]
+            },
+            "description": "Lista todas las cuentas asociadas a un cliente. app-cliente delega en app-cuentas via Feign.\n\n**Path variables**\n- `clienteId`\n\n**Respuestas**\n- `200` Lista de cuentas (puede venir vacia).\n- `404` Cliente no encontrado."
+          },
+          "response": [
+            {
+              "name": "200 - Cuentas del cliente",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/1/cuentas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "1",
+                    "cuentas"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"id\": 1,\n        \"numeroCuenta\": \"000000000042\",\n        \"tipoCuenta\": \"CUENTA_CORRIENTE\",\n        \"saldo\": 150000.50,\n        \"moneda\": \"ARS\",\n        \"fechaDeApertura\": \"2026-11-23T04:34:44.172956\",\n        \"habilitada\": true,\n        \"clienteId\": 1,\n        \"limiteDescubierto\": 750000.00,\n        \"porcentajeTasaInteresAnual\": null\n    },\n    {\n        \"id\": 7,\n        \"numeroCuenta\": \"427033112574\",\n        \"tipoCuenta\": \"CAJA_AHORRO\",\n        \"saldo\": 0.00,\n        \"moneda\": \"USD\",\n        \"fechaDeApertura\": \"2026-11-23T04:35:35.987011\",\n        \"habilitada\": true,\n        \"clienteId\": 1,\n        \"limiteDescubierto\": null,\n        \"porcentajeTasaInteresAnual\": 40.00\n    },\n    {\n        \"id\": 9,\n        \"numeroCuenta\": \"442136333823\",\n        \"tipoCuenta\": \"CUENTA_CORRIENTE\",\n        \"saldo\": 0.00,\n        \"moneda\": \"ARS\",\n        \"fechaDeApertura\": \"2026-11-23T16:58:02.447975\",\n        \"habilitada\": true,\n        \"clienteId\": 1,\n        \"limiteDescubierto\": 2000000.00,\n        \"porcentajeTasaInteresAnual\": null\n    }\n]"
+            },
+            {
+              "name": "404 - Cliente inexistente",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/999/cuentas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "999",
+                    "cuentas"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"No exite un client con el id 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "9. GET /clientes/1/cuentas?numeroCuenta=505865698632 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/1/cuentas?numeroCuenta=505865698632",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "1",
+                "cuentas"
+              ],
+              "query": [
+                {
+                  "key": "numeroCuenta",
+                  "value": "505865698632",
+                  "description": "Parte del numero de cuenta"
+                }
+              ]
+            },
+            "description": "Igual que la anterior, filtrando por **coincidencia parcial** de numeroCuenta (sin distinguir mayusculas).\n\n**Query params**\n- `numeroCuenta` (opcional)\n\n**Respuestas**\n- `200` Lista filtrada.\n- `404` Cliente no encontrado."
+          },
+          "response": [
+            {
+              "name": "200 - Con coincidencias",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/1/cuentas?numeroCuenta=427033112574",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "1",
+                    "cuentas"
+                  ],
+                  "query": [
+                    {
+                      "key": "numeroCuenta",
+                      "value": "427033112574",
+                      "description": "Parte del numero de cuenta"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"id\": 7,\n        \"numeroCuenta\": \"427033112574\",\n        \"tipoCuenta\": \"CAJA_AHORRO\",\n        \"saldo\": 0.00,\n        \"moneda\": \"USD\",\n        \"fechaDeApertura\": \"2026-11-23T04:35:35.987011\",\n        \"habilitada\": true,\n        \"clienteId\": 1,\n        \"limiteDescubierto\": null,\n        \"porcentajeTasaInteresAnual\": 40.00\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "10 . GET /clientes/1/cuentas/7 -> 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes/1/cuentas/7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "1",
+                "cuentas",
+                "7"
+              ]
+            },
+            "description": "Devuelve la cuenta que coincide con el id y pertenece al cliente indicado.\n\n**Path variables**\n- `clienteId`\n- `cuentaId`\n\n**Respuestas**\n- `200` Cuenta encontrada.\n- `404` Cliente o cuenta no encontrados."
+          },
+          "response": [
+            {
+              "name": "200 - Cuenta encontrada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/1/cuentas/7",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "1",
+                    "cuentas",
+                    "7"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"id\": 7,\n    \"numeroCuenta\": \"427033112574\",\n    \"tipoCuenta\": \"Caja de Ahorro\",\n    \"saldo\": 0.00,\n    \"moneda\": \"USD\",\n    \"fechaDeApertura\": \"2026-11-23T04:35:35.987011\",\n    \"habilitada\": true,\n    \"clienteId\": 1,\n    \"limiteDescubierto\": null,\n    \"porcentajeTasaInteresAnual\": 40.00\n}"
+            },
+            {
+              "name": "404 - No encontrada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/1/cuentas/7",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "1",
+                    "cuentas",
+                    "7"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"Cliente o cuenta no encontrada.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "11. POST /clientes/cuentas -> 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 201\", function () { pm.expect(pm.response.code).to.eql(201); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });\nif (pm.response.code === 201) { pm.collectionVariables.set(\"cuentaId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"Cuenta Corriente\",\n  \"moneda\": \"USD\",\n  \"clienteId\": \"1\",\n  \"saldoInicial\": 0.00,\n  \"limiteDescubierto\": 100000.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes/cuentas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "cuentas"
+              ]
+            },
+            "description": "Solicita a app-cuentas la creacion de una **Caja de Ahorro** o una **Cuenta Corriente** para un cliente existente. El numero de cuenta lo genera el sistema.\n\n**Body (JSON):** `CuentaRequest` (validado con `@Valid`).\n\n**Respuestas**\n- `201` Cuenta creada.\n- `400` Tipo de cuenta invalido o campos incorrectos.\n- `404` Cliente no encontrado.\n\n> Los nombres de campos (`clienteId`, `tipoCuenta`, etc.) son un supuesto: ajustalos a tu `CuentaRequest`.\n\nEl test guarda el `id` devuelto en `cuentaId`."
+          },
+          "response": [
+            {
+              "name": "201 - Caja de ahorro creada",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"clienteId\": 1,\n  \"tipoCuenta\": \"CAJA_AHORRO\",\n  \"porcentajeTasaInteresAnual\": 35.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/cuentas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "cuentas"
+                  ]
+                },
+                "description": "Solicita a app-cuentas la creacion de una **Caja de Ahorro** o una **Cuenta Corriente** para un cliente existente. El numero de cuenta lo genera el sistema.\n\n**Body (JSON):** `CuentaRequest` (validado con `@Valid`).\n\n**Respuestas**\n- `201` Cuenta creada.\n- `400` Tipo de cuenta invalido o campos incorrectos.\n- `404` Cliente no encontrado.\n\n> Los nombres de campos (`clienteId`, `tipoCuenta`, etc.) son un supuesto: ajustalos a tu `CuentaRequest`.\n\nEl test guarda el `id` devuelto en `cuentaId`."
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": 1,\n  \"numeroCuenta\": \"0001-000001\",\n  \"tipoCuenta\": \"CAJA_AHORRO\",\n  \"clienteId\": 1,\n  \"saldo\": 0.0,\n  \"porcentajeTasaInteresAnual\": 35.0\n}"
+            },
+            {
+              "name": "400 - Tipo de cuenta invalido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"clienteId\": 1,\n  \"tipoCuenta\": \"CAJA_AHORRO\",\n  \"porcentajeTasaInteresAnual\": 35.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/cuentas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "cuentas"
+                  ]
+                },
+                "description": "Solicita a app-cuentas la creacion de una **Caja de Ahorro** o una **Cuenta Corriente** para un cliente existente. El numero de cuenta lo genera el sistema.\n\n**Body (JSON):** `CuentaRequest` (validado con `@Valid`).\n\n**Respuestas**\n- `201` Cuenta creada.\n- `400` Tipo de cuenta invalido o campos incorrectos.\n- `404` Cliente no encontrado.\n\n> Los nombres de campos (`clienteId`, `tipoCuenta`, etc.) son un supuesto: ajustalos a tu `CuentaRequest`.\n\nEl test guarda el `id` devuelto en `cuentaId`."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Tipo de cuenta invalido\"\n}"
+            },
+            {
+              "name": "404 - Cliente no encontrado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"clienteId\": 1,\n  \"tipoCuenta\": \"CAJA_AHORRO\",\n  \"porcentajeTasaInteresAnual\": 35.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/cuentas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "cuentas"
+                  ]
+                },
+                "description": "Solicita a app-cuentas la creacion de una **Caja de Ahorro** o una **Cuenta Corriente** para un cliente existente. El numero de cuenta lo genera el sistema.\n\n**Body (JSON):** `CuentaRequest` (validado con `@Valid`).\n\n**Respuestas**\n- `201` Cuenta creada.\n- `400` Tipo de cuenta invalido o campos incorrectos.\n- `404` Cliente no encontrado.\n\n> Los nombres de campos (`clienteId`, `tipoCuenta`, etc.) son un supuesto: ajustalos a tu `CuentaRequest`.\n\nEl test guarda el `id` devuelto en `cuentaId`."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Cliente no encontrado con id 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "12. PUT /clientes/1/cuentas/7 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"porcentajeTasaInteresAnual\": 19.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes/1/cuentas/7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes",
+                "1",
+                "cuentas",
+                "7"
+              ]
+            },
+            "description": "Actualiza el `porcentajeTasaInteresAnual` de una Caja de Ahorro **o** el `limiteDescubierto` de una Cuenta Corriente.\n\n**Path variables**\n- `clienteId`\n- `cuentaId`\n\n**Body (JSON):** `CuentaUpdateRequest`.\n\n**Respuestas**\n- `200` Cuenta actualizada.\n- `404` Cliente o cuenta no encontrados.\n- `400` Campos que no corresponden al tipo de cuenta."
+          },
+          "response": [
+            {
+              "name": "200 - Cuenta actualizada",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"porcentajeTasaInteresAnual\": 40.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/{{clienteId}}/cuentas/{{cuentaId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "{{clienteId}}",
+                    "cuentas",
+                    "{{cuentaId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"id\": 7,\n    \"numeroCuenta\": \"427033112574\",\n    \"tipo\": \"Caja de Ahorro\",\n    \"moneda\": \"USD\",\n    \"saldo\": 0.00,\n    \"fechaDeApertura\": \"2026-11-23\",\n    \"habilitada\": true\n}"
+            },
+            {
+              "name": "400 - Campo no corresponde al tipo",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"porcentajeTasaInteresAnual\": 40.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/1/cuentas/7",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "1",
+                    "cuentas",
+                    "7"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"Solicitud inválida rechazada por Product-Service\"\n}"
+            },
+            {
+              "name": "404 - No encontrada",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"porcentajeTasaInteresAnual\": 40.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/clientes/1/cuentas/7",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "clientes",
+                    "1",
+                    "cuentas",
+                    "7"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"Cuenta no encontrada\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Operaciones sobre cuentas de un cliente. app-cliente valida y delega en app-cuentas via Feign. Requests 08 a 12."
+    },
+    {
+      "name": "Product-Service (Para Debug)",
+      "item": [
+        {
+          "name": "13. [Feign] GET /cuentas -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cuentasUrl}}/cuentas",
+              "host": [
+                "{{cuentasUrl}}"
+              ],
+              "path": [
+                "cuentas"
+              ],
+              "query": [
+                {
+                  "key": "numeroCuenta",
+                  "value": "",
+                  "description": "Parte del numero de cuenta",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "`CuentasClient#listar`. Lista todas las cuentas o filtra por `numeroCuenta`.\n\n> Llama **directo** a app-cuentas (`{{cuentasUrl}}`), sin pasar por app-cliente. Es la ruta que usa `CuentasClient` (Feign). Util para ver si un 404 viene de app-cuentas o de app-cliente."
+          },
+          "response": []
+        },
+        {
+          "name": "14. [Feign] GET /cuentas/clientes/1 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cuentasUrl}}/cuentas/clientes/1",
+              "host": [
+                "{{cuentasUrl}}"
+              ],
+              "path": [
+                "cuentas",
+                "clientes",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "numeroCuenta",
+                  "value": "",
+                  "description": "Parte del numero de cuenta",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "`CuentasClient#listarTodos`. Lista las cuentas de un cliente o filtra por `numeroCuenta`.\n\n> Llama **directo** a app-cuentas (`{{cuentasUrl}}`), sin pasar por app-cliente. Es la ruta que usa `CuentasClient` (Feign). Util para ver si un 404 viene de app-cuentas o de app-cliente."
+          },
+          "response": []
+        },
+        {
+          "name": "15. [Feign] GET /cuentas/clientes/1/7  -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cuentasUrl}}/cuentas/clientes/1/7",
+              "host": [
+                "{{cuentasUrl}}"
+              ],
+              "path": [
+                "cuentas",
+                "clientes",
+                "1",
+                "7"
+              ]
+            },
+            "description": "`CuentasClient#buscarPorId`. Obtiene una cuenta especifica de un cliente.\n\n> Llama **directo** a app-cuentas (`{{cuentasUrl}}`), sin pasar por app-cliente. Es la ruta que usa `CuentasClient` (Feign). Util para ver si un 404 viene de app-cuentas o de app-cliente."
+          },
+          "response": []
+        },
+        {
+          "name": "16. [Feign] POST /cuentas -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 201\", function () { pm.expect(pm.response.code).to.eql(201); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"Cuenta Corriente\",\n  \"moneda\": \"ARS\",\n  \"clienteId\": 1,\n  \"saldoInicial\": 0.00,\n  \"limiteDescubierto\": 1000000.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{cuentasUrl}}/cuentas",
+              "host": [
+                "{{cuentasUrl}}"
+              ],
+              "path": [
+                "cuentas"
+              ]
+            },
+            "description": "`CuentasClient#crear`. Crea una cuenta.\n\n> En la interfaz el `@PostMapping` no tiene path: confirma que la ruta real de app-cuentas sea `POST /cuentas`.\n\n> Llama **directo** a app-cuentas (`{{cuentasUrl}}`), sin pasar por app-cliente. Es la ruta que usa `CuentasClient` (Feign). Util para ver si un 404 viene de app-cuentas o de app-cliente."
+          },
+          "response": []
+        },
+        {
+          "name": "17. [Feign] PUT /cuentas/clientes/1/9 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status esperado: 200\", function () { pm.expect(pm.response.code).to.eql(200); });\npm.test(\"Responde en menos de 2 s\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"limiteDescubierto\": 2000000.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{cuentasUrl}}/cuentas/clientes/1/9",
+              "host": [
+                "{{cuentasUrl}}"
+              ],
+              "path": [
+                "cuentas",
+                "clientes",
+                "1",
+                "9"
+              ]
+            },
+            "description": "`CuentasClient#actualizar`. Actualiza una cuenta existente.\n\n> Llama **directo** a app-cuentas (`{{cuentasUrl}}`), sin pasar por app-cliente. Es la ruta que usa `CuentasClient` (Feign). Util para ver si un 404 viene de app-cuentas o de app-cliente."
+          },
+          "response": []
+        }
+      ],
+      "description": "Llamadas directas a app-cuentas, equivalentes a los metodos de `CuentasClient`. Solo para diagnostico. Requests 13 a 17."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "cuentasUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "clienteId",
+      "value": "1"
+    },
+    {
+      "key": "cuentaId",
+      "value": "1"
+    },
+    {
+      "key": "numeroDocumento",
+      "value": "30123456"
+    },
+    {
+      "key": "numeroCuenta",
+      "value": "0001"
+    }
+  ]
+}
